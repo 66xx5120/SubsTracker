@@ -414,6 +414,131 @@ const lunarBiz = {
   }
 };
 
+// === 新增：主题模式公共资源 (CSS覆盖 + JS逻辑) ===
+const themeResources = `
+<style>
+  /* === 全局暗黑模式核心变量与覆盖 === */
+  :root {
+    --dark-bg-primary: #111827;   /* 深灰/黑背景 */
+    --dark-bg-secondary: #1f2937; /* 卡片/容器背景 */
+    --dark-border: #374151;       /* 边框颜色 */
+    --dark-text-main: #f9fafb;    /* 主要文字 */
+    --dark-text-muted: #9ca3af;   /* 次要文字 */
+  }
+  html.dark body { background-color: var(--dark-bg-primary); color: var(--dark-text-muted); }
+  html.dark .bg-white { background-color: var(--dark-bg-secondary) !important; color: var(--dark-text-main); }
+  html.dark .bg-gray-50 { background-color: var(--dark-bg-primary) !important; }
+  html.dark .bg-gray-100 { background-color: var(--dark-border) !important; }
+  html.dark .shadow-md, html.dark .shadow-lg, html.dark .shadow-xl { 
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3); 
+  }
+  html.dark .text-gray-900, html.dark .text-gray-800 { color: var(--dark-text-main) !important; }
+  html.dark .text-gray-700 { color: #d1d5db !important; }
+  html.dark .text-gray-600, html.dark .text-gray-500 { color: var(--dark-text-muted) !important; }
+  html.dark .text-indigo-600 { color: #818cf8 !important; }
+  html.dark .border-gray-200, html.dark .border-gray-300 { border-color: var(--dark-border) !important; }
+  html.dark .divide-y > :not([hidden]) ~ :not([hidden]) { border-color: var(--dark-border) !important; }
+  html.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) { border-color: var(--dark-border) !important; }
+  html.dark input, html.dark select, html.dark textarea {
+    background-color: #374151 !important;
+    border-color: #4b5563 !important;
+    color: white !important;
+  }
+  html.dark input::placeholder, html.dark textarea::placeholder { color: #9ca3af; }
+  html.dark input:focus, html.dark select:focus, html.dark textarea:focus {
+    border-color: #818cf8 !important;
+    background-color: #4b5563 !important;
+  }
+  html.dark nav { background-color: var(--dark-bg-secondary) !important; border-bottom: 1px solid var(--dark-border); }
+  html.dark thead { background-color: #374151 !important; }
+  html.dark thead th { color: #e5e7eb !important; background-color: #374151 !important; }
+  html.dark tbody tr:hover { background-color: #374151 !important; }
+  html.dark tbody tr.bg-gray-100 { background-color: #374151 !important; }
+  /* 弹窗与日期选择器 */
+  html.dark .custom-date-picker { background-color: var(--dark-bg-secondary); border-color: var(--dark-border); }
+  html.dark .custom-date-picker .calendar-day { color: #e5e7eb; }
+  html.dark .custom-date-picker .calendar-day:hover { background-color: #374151; }
+  html.dark .custom-date-picker .calendar-day.other-month { color: #4b5563; }
+  html.dark .month-option, html.dark .year-option { color: #e5e7eb; }
+  html.dark .month-option:hover, html.dark .year-option:hover { background-color: #374151 !important; }
+  html.dark .custom-dropdown-list { background-color: var(--dark-bg-secondary); border-color: var(--dark-border); }
+  html.dark .dropdown-item { color: #d1d5db; border-bottom-color: var(--dark-border); }
+  html.dark .dropdown-item:hover { background-color: #374151; color: #818cf8; }
+  html.dark #mobile-menu { background-color: var(--dark-bg-secondary); border-color: var(--dark-border); }
+  html.dark #mobile-menu a { color: #e5e7eb; }
+  html.dark #mobile-menu a:hover { background-color: #374151; }
+  html.dark #mobile-menu-btn { color: #e5e7eb; }
+  html.dark #mobile-menu-btn:hover { background-color: #374151; }
+  html.dark .loading-skeleton { background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%); }
+  
+  @media (max-width: 767px) {   /* === 移动端表格样式(高对比度版) === */
+    html.dark .responsive-table td:before {  /* 强制提亮移动端表格的 Label */
+      color: #e5e7eb !important;    /* 改为极亮的浅灰色 (接近纯白) */
+      font-weight: 700 !important;  /* 加粗字体 */
+      opacity: 1 !important;
+      text-transform: uppercase;    /* 可选：增加大写使其更突出 */
+      letter-spacing: 0.05em;
+    }
+    html.dark .responsive-table tr {
+      border-color: #374151 !important;
+      background-color: #1f2937 !important;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3) !important; /* 阴影稍微加深 */
+    }
+    
+    html.dark .responsive-table td {
+      border-bottom-color: #374151 !important;
+    }
+    
+    html.dark .td-content-wrapper {
+        color: #f3f4f6;
+    }
+  }
+</style>
+<script>
+  (function() {
+    function applyTheme(mode) {
+      const html = document.documentElement;
+      const isSystemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      
+      if (mode === 'dark' || (mode === 'system' && isSystemDark)) {
+        html.classList.add('dark');
+      } else {
+        html.classList.remove('dark');
+      }
+    }
+
+    const savedTheme = localStorage.getItem('themeMode') || 'system';
+    applyTheme(savedTheme);
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+      const currentMode = localStorage.getItem('themeMode') || 'system';
+      if (currentMode === 'system') {
+        applyTheme('system');
+      }
+    });
+
+    window.addEventListener('load', async () => {
+      if (window.location.pathname.startsWith('/admin')) {
+        try {
+          const res = await fetch('/api/config');
+          const config = await res.json();
+          if (config.THEME_MODE && config.THEME_MODE !== localStorage.getItem('themeMode')) {
+            localStorage.setItem('themeMode', config.THEME_MODE);
+            applyTheme(config.THEME_MODE);
+            const select = document.getElementById('themeModeSelect');
+            if (select) select.value = config.THEME_MODE;
+          }
+        } catch(e) {}
+      }
+    });
+    
+    window.updateAppTheme = function(mode) {
+      localStorage.setItem('themeMode', mode);
+      applyTheme(mode);
+    };
+  })();
+</script>
+`;
 // 定义HTML模板
 const loginPage = `
 <!DOCTYPE html>
@@ -424,7 +549,7 @@ const loginPage = `
   <title>订阅管理系统</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-  <style>
+  ${themeResources}  <style>
     .login-container {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       min-height: 100vh;
@@ -532,7 +657,7 @@ const adminPage = `
   <title>订阅管理系统</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-  <style>
+  ${themeResources}  <style>
     .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); transition: all 0.3s; }
     .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); }
     .btn-danger { background: linear-gradient(135deg, #f87171 0%, #dc2626 100%); transition: all 0.3s; }
@@ -976,25 +1101,25 @@ const adminPage = `
         <table class="w-full divide-y divide-gray-200 responsive-table">
           <thead class="bg-gray-50">
             <tr>
-              <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 23%;">
+              <th scope="col" class="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider" style="width: 23%;">
                 名称
               </th>
-              <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 13%;">
+              <th scope="col" class="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider" style="width: 13%;">
                 类型
               </th>
-              <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 18%;">
-                到期时间 <i class="fas fa-sort-up ml-1 text-indigo-500" title="按到期时间升序排列"></i>
+              <th scope="col" class="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider" style="width: 18%;">
+                到期 <i class="fas fa-sort-up ml-1 text-indigo-500" title="按到期时间升序排列"></i>
               </th>
-              <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 10%;">
+              <th scope="col" class="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider" style="width: 10%;">
                 金额
               </th>
-              <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 13%;">
-                提醒设置
+              <th scope="col" class="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider" style="width: 13%;">
+                提醒
               </th>
-              <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 10%;">
+              <th scope="col" class="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider" style="width: 10%;">
                 状态
               </th>
-              <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="width: 13%;">
+              <th scope="col" class="px-4 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider" style="width: 13%;">
                 操作
               </th>
             </tr>
@@ -1006,8 +1131,8 @@ const adminPage = `
     </div>
   </div>
 
-  <div id="subscriptionModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 modal-container hidden flex items-center justify-center z-50">
-    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-screen overflow-y-auto">
+  <div id="subscriptionModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-gray-600 bg-opacity-50">
+    <div class="relative w-auto max-w-2xl mx-4 md:mx-auto my-12 bg-white rounded-lg shadow-xl">
       <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 rounded-t-lg">
         <div class="flex items-center justify-between">
           <h3 id="modalTitle" class="text-lg font-medium text-gray-900">添加新订阅</h3>
@@ -1051,13 +1176,14 @@ const adminPage = `
               <div class="w-24 shrink-0"> 
                 <select id="currency" class="h-10 w-full px-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white text-sm">
                   <option value="CNY" selected>CNY (¥)</option>
-                  <option value="USD">USD ($)</option>
-                  <option value="HKD">HKD (HK$)</option>
-                  <option value="TWD">TWD (NT$)</option>
-                  <option value="JPY">JPY (¥)</option>
-                  <option value="EUR">EUR (€)</option>
-                  <option value="GBP">GBP (£)</option>
-                  <option value="KRW">KRW (₩)</option>
+                  <option value="USD">USD ($)</option>   // 美元
+                  <option value="HKD">HKD (HK$)</option> // 港币
+                  <option value="TWD">TWD (NT$)</option> // 新台币
+                  <option value="JPY">JPY (¥)</option>   // 日元
+                  <option value="EUR">EUR (€)</option>   // 欧元
+                  <option value="GBP">GBP (£)</option>   // 英镑
+                  <option value="KRW">KRW (₩)</option>   // 韩元
+                  <option value="TRY">TRY (₺)</option>   // 土耳其里拉
                 </select>
               </div>
               <div class="relative flex-1">
@@ -1979,7 +2105,7 @@ const lunarBiz = {
 
         const currencySymbols = {
           'CNY': '¥', 'USD': '$', 'HKD': 'HK$', 'TWD': 'NT$', 
-          'JPY': '¥', 'EUR': '€', 'GBP': '£', 'KRW': '₩'
+          'JPY': '¥', 'EUR': '€', 'GBP': '£', 'KRW': '₩', 'TRY': '₺'
         };
         const currencySymbol = currencySymbols[subscription.currency] || '¥';
 
@@ -2005,7 +2131,7 @@ const lunarBiz = {
             categoryHtml +
             calendarTypeHtml +
           '</div></td>' +
-          '<td data-label="到期时间" class="px-4 py-3"><div class="td-content-wrapper">' +
+          '<td data-label="到期" class="px-4 py-3"><div class="td-content-wrapper">' +
             '<div class="text-sm text-gray-900">' + expiryDateText + '</div>' +
             lunarHtml +
             '<div class="text-xs text-gray-500 mt-1">' + daysLeftText + '</div>' +
@@ -2014,7 +2140,7 @@ const lunarBiz = {
           '<td data-label="金额" class="px-4 py-3"><div class="td-content-wrapper">' +
             amountHtml +
           '</div></td>' +
-          '<td data-label="提醒设置" class="px-4 py-3"><div class="td-content-wrapper">' +
+          '<td data-label="提醒" class="px-4 py-3"><div class="td-content-wrapper">' +
             reminderHtml +
           '</div></td>' +
           '<td data-label="状态" class="px-4 py-3"><div class="td-content-wrapper">' + statusHtml + '</div></td>' +
@@ -2183,7 +2309,7 @@ const lunarBiz = {
         // 获取动态货币符号
         const currencySymbols = {
           'CNY': '¥', 'USD': '$', 'HKD': 'HK$', 'TWD': 'NT$', 
-          'JPY': '¥', 'EUR': '€', 'GBP': '£', 'KRW': '₩'
+          'JPY': '¥', 'EUR': '€', 'GBP': '£', 'KRW': '₩', 'TRY': '₺'
         };
         const currency = subscription.currency || 'CNY';
         const symbol = currencySymbols[currency] || '¥';
@@ -2747,6 +2873,7 @@ const lunarBiz = {
     document.getElementById('addSubscriptionBtn').addEventListener('click', () => {
       document.getElementById('modalTitle').textContent = '添加新订阅';
       document.getElementById('subscriptionModal').classList.remove('hidden');
+      document.body.classList.add('overflow-hidden'); // 禁止背景滚动
 
       document.getElementById('subscriptionForm').reset();
       document.getElementById('currency').value = 'CNY'; // 默认设置为CNY
@@ -3325,6 +3452,7 @@ const lunarBiz = {
       if (expiryDate) expiryDate.addEventListener('change', () => updateLunarDisplay('expiryDate', 'expiryDateLunar'));
       if (cancelBtn) cancelBtn.addEventListener('click', () => {
         document.getElementById('subscriptionModal').classList.add('hidden');
+        document.body.classList.remove('overflow-hidden'); // 恢复背景滚动
       });
 
       ['startDate', 'periodValue', 'periodUnit'].forEach(id => {
@@ -3417,6 +3545,7 @@ const lunarBiz = {
     
     document.getElementById('closeModal').addEventListener('click', () => {
       document.getElementById('subscriptionModal').classList.add('hidden');
+      document.body.classList.remove('overflow-hidden'); // 恢复页面滚动
     });
     
     document.getElementById('subscriptionForm').addEventListener('submit', async (e) => {
@@ -3471,6 +3600,7 @@ const lunarBiz = {
         if (result.success) {
           showToast((id ? '更新' : '添加') + '订阅成功', 'success');
           document.getElementById('subscriptionModal').classList.add('hidden');
+          document.body.classList.remove('overflow-hidden'); // 恢复背景滚动
           loadSubscriptions();
         } else {
           showToast((id ? '更新' : '添加') + '订阅失败: ' + (result.message || '未知错误'), 'error');
@@ -3534,6 +3664,7 @@ const lunarBiz = {
           clearFieldErrors();
           loadLunarPreference();
           document.getElementById('subscriptionModal').classList.remove('hidden');
+          document.body.classList.add('overflow-hidden'); // 禁止背景滚动
           
           // 重要：编辑订阅时也需要重新设置事件监听器
           setupModalEventListeners();
@@ -3756,7 +3887,7 @@ const configPage = `
   <title>系统配置 - 订阅管理系统</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-  <style>
+  ${themeResources} <style>
     .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); transition: all 0.3s; }
     .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); }
     .btn-secondary { background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); transition: all 0.3s; }
@@ -3786,6 +3917,25 @@ const configPage = `
     .config-section.inactive { 
       background-color: #f9fafb; 
       opacity: 0.7; 
+    }
+    /* === Config Page 暗黑模式修复 === */
+    html.dark .config-section {
+      border-color: #374151;
+    }
+    html.dark .config-section.active {
+      background-color: rgba(31, 41, 55, 0.5); /* #1f2937 with opacity */
+      border-color: #818cf8;
+    }
+    html.dark .config-section.inactive {
+      background-color: #111827;
+      opacity: 0.5;
+    }
+    html.dark .bg-indigo-50 {
+        background-color: rgba(55, 65, 81, 0.5) !important; /* 深灰色带透明 */
+        border-color: #4b5563 !important;
+    }
+    html.dark .text-indigo-700 {
+        color: #a5b4fc !important; /* 浅靛蓝 */
     }
   </style>
 </head>
@@ -3868,6 +4018,15 @@ const configPage = `
         <div class="border-b border-gray-200 pb-6">
           <h3 class="text-lg font-medium text-gray-900 mb-4">显示设置</h3>
           
+          <div class="mb-6">
+            <label for="themeModeSelect" class="block text-sm font-medium text-gray-700 mb-1">主题模式</label>
+            <select id="themeModeSelect" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white sm:text-sm">
+              <option value="light">🌞 浅色模式</option>
+              <option value="dark">🌙 暗黑模式</option>
+              <option value="system">🖥️ 跟随系统</option>
+            </select>
+            <p class="mt-1 text-sm text-gray-500">选择系统的外观风格</p>
+          </div>
           
           <div class="mb-6">
             <label class="inline-flex items-center">
@@ -4185,6 +4344,7 @@ const configPage = `
         const config = await response.json();
 
         document.getElementById('adminUsername').value = config.ADMIN_USERNAME || '';
+        document.getElementById('themeModeSelect').value = config.THEME_MODE || 'system';  // 回显主题设置
         document.getElementById('tgBotToken').value = config.TG_BOT_TOKEN || '';
         document.getElementById('tgChatId').value = config.TG_CHAT_ID || '';
         document.getElementById('notifyxApiKey').value = config.NOTIFYX_API_KEY || '';
@@ -4329,6 +4489,7 @@ const configPage = `
 
       const config = {
         ADMIN_USERNAME: document.getElementById('adminUsername').value.trim(),
+        THEME_MODE: document.getElementById('themeModeSelect').value,      // 保存主题设置
         TG_BOT_TOKEN: document.getElementById('tgBotToken').value.trim(),
         TG_CHAT_ID: document.getElementById('tgChatId').value.trim(),
         NOTIFYX_API_KEY: document.getElementById('notifyxApiKey').value.trim(),
@@ -4385,6 +4546,9 @@ const configPage = `
 
         if (result.success) {
           showToast('配置保存成功', 'success');
+          if (window.updateAppTheme) {    // 保存成功后立即应用主题，无需刷新
+            window.updateAppTheme(config.THEME_MODE);
+          }
           passwordField.value = '';
           
           // 更新全局时区并重新显示时间
@@ -4709,7 +4873,7 @@ function dashboardPage() {
   <title>仪表盘 - SubsTracker</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-  <style>
+  ${themeResources}  <style>
     .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); transition: all 0.3s; }
     .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); }
     .stat-card{background:white;border-radius:12px;padding:1.5rem;box-shadow:0 2px 8px rgba(0,0,0,0.1);transition:transform 0.2s,box-shadow 0.2s}
@@ -4745,7 +4909,31 @@ function dashboardPage() {
     .empty-state{text-align:center;padding:3rem 1rem;color:#9ca3af}
     .empty-state-icon{font-size:3rem;margin-bottom:1rem;opacity:0.5}
     .empty-state-text{font-size:0.875rem}
+    /* === Dashboard 暗黑模式修复 === */
+    html.dark .stat-card {
+      background: #1f2937; /* 深色卡片背景 */
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+    }
+    html.dark .stat-card-header { color: #9ca3af; }
+    html.dark .stat-card-value { color: #f3f4f6; } /* 白色文字 */
+    html.dark .stat-card-subtitle { color: #6b7280; } 
+    html.dark .stat-card-trend.flat { background: #374151; color: #9ca3af; }
+    html.dark .stat-card-trend.up { background: rgba(16, 185, 129, 0.2); }
+    html.dark .stat-card-trend.down { background: rgba(239, 68, 68, 0.2); }
+    html.dark .list-item:hover { background: #374151; }
+    html.dark .list-item:not(:last-child) { border-bottom-color: #374151; }
+    html.dark .list-item-name { color: #f3f4f6; } /* 列表项名称变白 */
+    html.dark .list-item-meta { color: #9ca3af; }
+    html.dark .list-item-badge { background: #3730a3; color: #c7d2fe; }
+    html.dark .ranking-item-name { color: #f3f4f6; } /* 排行榜名称变白 */
+    html.dark .ranking-item-amount { color: #e5e7eb; } /* 金额变白 */
+    html.dark .ranking-progress { background: #374151; }
+    /* 修复右上角的标签 */
+    html.dark .bg-indigo-100 { background-color: rgba(99, 102, 241, 0.2) !important; color: #a5b4fc !important; }
+    html.dark .text-indigo-800 { color: #c7d2fe !important; }
     .loading-skeleton{background:linear-gradient(90deg,#f3f4f6 25%,#e5e7eb 50%,#f3f4f6 75%);background-size:200% 100%;animation:loading 1.5s infinite;height:100px;border-radius:8px}
+    /* 暗黑模式骨架屏 */
+    html.dark .loading-skeleton { background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%); }
     @keyframes loading{0%{background-position:200% 0}100%{background-position:-200% 0}}
   </style>
 </head>
@@ -4874,7 +5062,7 @@ function dashboardPage() {
     // 定义货币符号映射
     const currencySymbols = {
       'CNY': '¥', 'USD': '$', 'HKD': 'HK$', 'TWD': 'NT$', 
-      'JPY': '¥', 'EUR': '€', 'GBP': '£', 'KRW': '₩'
+      'JPY': '¥', 'EUR': '€', 'GBP': '£', 'KRW': '₩', 'TRY': '₺'
     };
     function getSymbol(currency) {
       return currencySymbols[currency] || '¥';
@@ -5233,6 +5421,7 @@ const api = {
           const updatedConfig = {
             ...config,
             ADMIN_USERNAME: newConfig.ADMIN_USERNAME || config.ADMIN_USERNAME,
+            THEME_MODE: newConfig.THEME_MODE || 'system', // 保存主题配置
             TG_BOT_TOKEN: newConfig.TG_BOT_TOKEN || '',
             TG_CHAT_ID: newConfig.TG_CHAT_ID || '',
             NOTIFYX_API_KEY: newConfig.NOTIFYX_API_KEY || '',
@@ -5708,6 +5897,7 @@ async function getConfig(env) {
       BARK_SERVER: config.BARK_SERVER || 'https://api.day.app',
       BARK_IS_ARCHIVE: config.BARK_IS_ARCHIVE || 'false',
       ENABLED_NOTIFIERS: config.ENABLED_NOTIFIERS || ['notifyx'],
+      THEME_MODE: config.THEME_MODE || 'system', // 默认主题为跟随系统
       TIMEZONE: config.TIMEZONE || 'UTC', // 新增时区字段
       NOTIFICATION_HOURS: Array.isArray(config.NOTIFICATION_HOURS) ? config.NOTIFICATION_HOURS : [],
       THIRD_PARTY_API_TOKEN: config.THIRD_PARTY_API_TOKEN || ''
@@ -7227,7 +7417,8 @@ const FALLBACK_RATES = {
   'JPY': 0.044,
   'EUR': 8.16,
   'GBP': 9.40,
-  'KRW': 0.0048
+  'KRW': 0.0048,
+  'TRY': 0.16
 };
 // 获取动态汇率 (核心逻辑：KV缓存 -> API请求 -> 兜底合并)
 async function getDynamicRates(env) {
